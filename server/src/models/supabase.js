@@ -87,7 +87,10 @@ async function rows(collection){
   return (data||[]).map(row=>makeDoc(collection,{...(row.data||{}),_id:row.id,createdAt:row.data?.createdAt||row.created_at,updatedAt:row.data?.updatedAt||row.updated_at}));
 }
 async function persist(collection,doc){
-  const now=new Date();doc._id=String(doc._id||randomUUID());doc.createdAt=doc.createdAt||now;doc.updatedAt=now;
+  const now=new Date();doc._id=String(doc._id||randomUUID());
+  const createdAt=doc.createdAt?new Date(doc.createdAt):now;
+  doc.createdAt=Number.isNaN(createdAt.getTime())?now:createdAt;
+  doc.updatedAt=now;
   const data=plain(doc);delete data.save;delete data.id;
   const {data:result,error}=await db().from(table).upsert({id:doc._id,collection,data,created_at:doc.createdAt.toISOString(),updated_at:doc.updatedAt.toISOString()},{onConflict:'collection,id'}).select('id,data,created_at,updated_at').single();
   if(error)throw error;
@@ -197,3 +200,4 @@ export const WisdomExchange=createModel('WisdomExchange');
 export const Participation=createModel('Participation');
 export const Notification=createModel('Notification');
 export const VolunteerVerification=createModel('VolunteerVerification');
+
