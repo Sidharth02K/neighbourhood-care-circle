@@ -29,10 +29,18 @@ app.use(async(req,res,next)=>{
   }catch(error){next(error)}
 });
 app.use('/api',api);
+const sendAppShell=(_req,res,next)=>{
+  // Always revalidate the HTML entry point so browsers never keep a bundle
+  // filename from an older deployment after Vercel switches production aliases.
+  res.setHeader('Cache-Control','no-store, no-cache, must-revalidate, max-age=0');
+  res.sendFile(path.join(publicDir,'index.html'),error=>{if(error)next(error)});
+};
+app.get('/',sendAppShell);
+app.get('/index.html',sendAppShell);
 app.use(express.static(publicDir));
 app.get('*',(req,res,next)=>{
   if(req.path==='/api'||req.path.startsWith('/api/'))return next();
-  res.sendFile(path.join(publicDir,'index.html'),error=>{if(error)next(error)});
+  sendAppShell(req,res,next);
 });
 app.use((error,_req,res,_next)=>{
   console.error(error);
