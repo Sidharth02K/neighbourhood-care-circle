@@ -1,0 +1,31 @@
+import mongoose from 'mongoose';
+export const databaseType = 'mongodb';
+export async function connectDatabase(){
+  if(mongoose.connection.readyState===1)return;
+  await mongoose.connect(process.env.MONGODB_URI||'mongodb://127.0.0.1:27017/neighbourhood_care_circle');
+}
+export async function disconnectDatabase(){await mongoose.disconnect()}
+const { Schema, model } = mongoose;
+const opts = { timestamps: true, strict: true };
+const userSchema = new Schema({ name: { type: String, required: true }, email: { type: String, required: true, unique: true, lowercase: true, index: true }, passwordHash: { type: String, required: true }, role: { type: String, enum: ['resident','volunteer','coordinator','family'], required: true }, phone: String, bio: String, interests: [String], skills: [String], verificationStatus: { type: String, enum: ['not-required','pending','approved','rejected'], default: 'pending' }, availability: { type: Boolean, default: true }, linkedResident: { type: Schema.Types.ObjectId, ref: 'User' }, accessibility: { largeText: { type: Boolean, default: false }, highContrast: { type: Boolean, default: false } }, active: { type: Boolean, default: true } }, opts);
+const preferencesSchema = new Schema({ resident: { type: Schema.Types.ObjectId, ref: 'User', unique: true, required: true }, consentToCircle: { type: Boolean, default: true }, allowFamilyUpdates: { type: Boolean, default: false }, familyUpdateFields: [String], followUpContacts: [{ type: Schema.Types.ObjectId, ref: 'User' }], graceMinutes: { type: Number, default: 30, min: 0 }, interests: [String], contactPreference: { type: String, enum: ['phone','in-person','either'], default: 'either' }, pauseSuggestions: { type: Boolean, default: false } }, opts);
+const circleSchema = new Schema({ resident: { type: Schema.Types.ObjectId, ref: 'User', required: true, index: true }, members: [{ user: { type: Schema.Types.ObjectId, ref: 'User' }, role: { type: String, enum: ['primary','backup','coordinator','family'] }, approved: { type: Boolean, default: false }, consentedAt: Date }], active: { type: Boolean, default: true } }, opts);
+const activitySchema = new Schema({ title: { type: String, required: true }, type: { type: String, enum: ['phone call','walk','visit','community event','grocery help','errand','digital help','other'], default: 'other' }, resident: { type: Schema.Types.ObjectId, ref: 'User', required: true, index: true }, primary: { type: Schema.Types.ObjectId, ref: 'User' }, backup: { type: Schema.Types.ObjectId, ref: 'User' }, assignedTo: { type: Schema.Types.ObjectId, ref: 'User' }, startsAt: { type: Date, required: true, index: true }, recurrence: { type: String, enum: ['once','weekly','biweekly','monthly'], default: 'once' }, parentRoutine: { type: Schema.Types.ObjectId, ref: 'Activity' }, nextInstanceCreated: { type: Boolean, default: false }, graceMinutes: { type: Number, default: 30, min: 0 }, status: { type: String, enum: ['Pending Assignment','Scheduled','Accepted','Completed','Cancelled','Missed','Overdue','Follow-up Required','Rescheduled'], default: 'Pending Assignment', index: true }, notes: String, relayStatus: { type: String, enum: ['none','offered','accepted','declined','coordinator-needed'], default: 'none' }, outcome: String, resolvedAt: Date }, opts);
+activitySchema.index({ resident: 1, startsAt: 1 });
+const followSchema = new Schema({ activity: { type: Schema.Types.ObjectId, ref: 'Activity', required: true, unique: true }, resident: { type: Schema.Types.ObjectId, ref: 'User', required: true }, assignedTo: { type: Schema.Types.ObjectId, ref: 'User' }, reason: String, status: { type: String, enum: ['open','resolved'], default: 'open', index: true }, outcome: String, rescheduledFor: Date, resolvedAt: Date }, opts);
+const eventSchema = new Schema({ title: { type: String, required: true }, category: String, description: String, venue: String, startsAt: Date, capacity: { type: Number, default: 20 }, accessibility: String, organiser: { type: Schema.Types.ObjectId, ref: 'User' }, attendees: [{ type: Schema.Types.ObjectId, ref: 'User' }] }, opts);
+const helpSchema = new Schema({ resident: { type: Schema.Types.ObjectId, ref: 'User', required: true }, category: String, description: String, preferredAt: Date, assignedTo: { type: Schema.Types.ObjectId, ref: 'User' }, status: { type: String, enum: ['open','assigned','accepted','completed','declined'], default: 'open', index: true } }, opts);
+const wisdomSchema = new Schema({ resident: { type: Schema.Types.ObjectId, ref: 'User', required: true }, title: String, category: String, description: String, startsAt: Date, venue: String, capacity: { type: Number, default: 8 }, participants: [{ type: Schema.Types.ObjectId, ref: 'User' }], requests: [{ user: { type: Schema.Types.ObjectId, ref: 'User' }, status: { type: String, enum: ['pending','approved','declined'], default: 'pending' } }] }, opts);
+const notificationSchema = new Schema({ user: { type: Schema.Types.ObjectId, ref: 'User', required: true, index: true }, title: String, message: String, kind: String, link: String, readAt: Date }, opts);
+const verificationSchema = new Schema({ volunteer: { type: Schema.Types.ObjectId, ref: 'User', unique: true }, status: { type: String, enum: ['pending','approved','rejected'], default: 'pending' }, reviewedBy: { type: Schema.Types.ObjectId, ref: 'User' }, reviewedAt: Date, note: String }, opts);
+export const User = model('User', userSchema);
+export const ResidentPreferences = model('ResidentPreferences', preferencesSchema);
+export const CareCircle = model('CareCircle', circleSchema);
+export const Activity = model('Activity', activitySchema);
+export const FollowUpTask = model('FollowUpTask', followSchema);
+export const CommunityEvent = model('CommunityEvent', eventSchema);
+export const HelpRequest = model('HelpRequest', helpSchema);
+export const WisdomExchange = model('WisdomExchange', wisdomSchema);
+export const Participation = model('Participation', new Schema({ opportunity: { type: Schema.Types.ObjectId, ref: 'WisdomExchange' }, user: { type: Schema.Types.ObjectId, ref: 'User' }, status: { type: String, enum: ['pending','approved','declined'], default: 'pending' } }, opts));
+export const Notification = model('Notification', notificationSchema);
+export const VolunteerVerification = model('VolunteerVerification', verificationSchema);

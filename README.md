@@ -133,4 +133,3 @@ scripts/                   Deployment build helpers
 ## Prototype limits
 
 This is not production identity verification or a safeguarding system. It does not send real SMS or email, provide emergency services, or implement a complete family invitation workflow. A live community pilot would need resident-led research, volunteer checks, safeguarding review and explicit operational procedures.
-
