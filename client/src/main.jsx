@@ -7,7 +7,7 @@ import './interaction-overrides.css';
 
 const API=import.meta.env.VITE_API_URL||'/api';
 const DEMOS=[['resident@ncc.demo','Circle2026!','Resident · Mr. Sharma'],['volunteer@ncc.demo','Circle2026!','Volunteer · Rahul'],['volunteer2@ncc.demo','Circle2026!','Backup · Priya'],['coordinator@ncc.demo','Circle2026!','Coordinator · Maya'],['family@ncc.demo','Circle2026!','Family contact']];
-const fmt=(date,opts={month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})=>date?new Intl.DateTimeFormat('en-IN',opts).format(new Date(date)):'To be scheduled';
+const fmt=(date,opts={month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})=>{if(!date)return'To be scheduled';const parsed=date instanceof Date?date:new Date(date);return Number.isNaN(parsed.getTime())?'Date to be confirmed':new Intl.DateTimeFormat('en-IN',opts).format(parsed)};
 const initials=n=>(n||'').split(' ').map(x=>x[0]).slice(0,2).join('').toUpperCase();
 const iconFor={walk:'◌', 'phone call':'◉',visit:'⌂','community event':'✳','grocery help':'✿',errand:'↗','digital help':'⌘'};
 function App(){
