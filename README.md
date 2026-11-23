@@ -2,6 +2,8 @@
 
 A consent-first community support app for the Engineering, Creativity, Innovation and Design Lab. It helps older adults build trusted neighbourhood relationships, keep agreed social routines, coordinate backups and take part in community activities.
 
+**Live demo:** https://neighbourhood-care-circle.vercel.app/
+
 > **Don't just provide care. Create belonging.**
 
 This is a classroom prototype using fictional demo information. It coordinates social and everyday community support. It is not medical care, emergency dispatch, professional caregiving, or a loneliness or mental-health diagnostic tool. A missed activity creates a human follow-up according to resident preferences; the app never automatically assumes danger.
