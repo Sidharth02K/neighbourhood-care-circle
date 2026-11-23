@@ -1,5 +1,9 @@
+import express from 'express';
 import app from '../server/src/app.js';
 
-// Vercel detects this default-exported Express app as a serverless function.
+// Keep an Express entrypoint at a location Vercel's Express builder detects.
 // The Vite build is copied into /public and served by Vercel's static CDN.
-export default app;
+const handler = express();
+handler.use(app);
+
+export default handler;
